@@ -4,6 +4,7 @@ from uuid import uuid4
 
 from nonebot import get_driver, on_request, on_command, Bot
 from nonebot.adapters.onebot.v11 import FriendRequestEvent, GroupRequestEvent, RequestEvent, Bot as OneBotV11Bot
+from nonebot.adapters.onebot.v12 import RequestEvent as Onebot12RequestEvent, Bot as OneBotV12Bot
 from nonebot.adapters.qq import Bot as QQGuildBot, DirectMessageCreateEvent, MessageCreateEvent
 from nonebot.adapters.qq.exception import ActionFailed as QQGuildActionFailed, AuditException
 from nonebot.internal.matcher import Matcher
@@ -52,6 +53,24 @@ async def _(bot: OneBotV11Bot, event: RequestEvent):
     elif isinstance(event, GroupRequestEvent):
         logger.info(f'{plugin_config.preference.log_head}已加入群聊 {event.group_id}')
 
+async def _(bot: OneBotV12Bot, event: Onebot12RequestEvent):
+    command_start = list(get_driver().config.command_start)[0]
+    # 判断为加好友事件
+    if isinstance(event, FriendRequestEvent):
+        if plugin_config.preference.add_friend_accept:
+            logger.info(f'{plugin_config.preference.log_head}已添加好友{event.user_id}')
+            await bot.set_friend_add_request(flag=event.flag, approve=True)
+            if plugin_config.preference.add_friend_welcome:
+                # 等待腾讯服务器响应
+                await asyncio.sleep(1.5)
+                await bot.send_private_msg(user_id=event.user_id,
+                                           message=f'欢迎使用米游社小助手，请发送『{command_start}帮助』查看更多用法哦~')
+
+
+
+    # 判断为邀请进群事件
+    elif isinstance(event, GroupRequestEvent):
+        logger.info(f'{plugin_config.preference.log_head}已加入群聊 {event.group_id}')
 
 user_binding = on_command(
     f"{plugin_config.preference.command_start}用户绑定",
@@ -231,6 +250,8 @@ async def _(bot: Bot, event: Union[GeneralGroupMessageEvent]):
                "具体用法：\n" \
                f"{PLUGIN.metadata.usage.format(HEAD=COMMAND_BEGIN)}"
     send_result, action_failed = await send_private_msg(
+        platform="wechat",
+        detail_type="private",
         user_id=event.get_user_id(),
         message=msg_text,
         guild_id=int(event.guild_id) if isinstance(event, MessageCreateEvent) else None,
