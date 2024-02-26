@@ -13,6 +13,7 @@ from typing import List, Callable, Any, Tuple, Optional, Dict, Union
 from apscheduler.events import JobExecutionEvent, EVENT_JOB_EXECUTED
 from nonebot import on_command, get_driver
 from nonebot.adapters.onebot.v11 import MessageEvent as OneBotV11MessageEvent, MessageSegment as OneBotV11MessageSegment
+from nonebot.adapters.onebot.v12 import MessageEvent as OneBotV12MessageEvent, MessageSegment as OneBotV12MessageSegment, Bot
 from nonebot.adapters.qq import MessageEvent as QQGuildMessageEvent, MessageSegment as QQGuildMessageSegment
 from nonebot.internal.params import ArgStr
 from nonebot.matcher import Matcher
@@ -315,7 +316,7 @@ async def _(_: Union[GeneralMessageEvent], matcher: Matcher, arg=CommandArg()):
                                       "\n- 米游社"
                                       "\n若是商品图片与米游社商品不符或报错 请发送“更新”哦~"
                                       "\n—— 🚪发送“退出”以结束")
-async def _(event: Union[GeneralMessageEvent], arg=ArgPlainText("content")):
+async def _(bot:Bot, event: Union[GeneralMessageEvent], arg=ArgPlainText("content")):
     """
     根据传入的商品类别，发送对应的商品列表图片
     """
@@ -349,6 +350,9 @@ async def _(event: Union[GeneralMessageEvent], arg=ArgPlainText("content")):
             msg = OneBotV11MessageSegment.image(image_bytes)
         elif isinstance(event, QQGuildMessageEvent):
             msg = QQGuildMessageSegment.file_image(image_bytes)
+        elif isinstance(event, OneBotV12MessageEvent):
+            pic_file = await bot.upload_file(type='path', name="123.jpg", path=img_path)
+            msg = OneBotV12MessageSegment.image(pic_file['file_id'])
         await get_good_image.finish(msg)
     else:
         await get_good_image.finish(
