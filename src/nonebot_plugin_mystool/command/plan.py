@@ -5,6 +5,8 @@ from typing import Union, Optional, Iterable, Dict
 from nonebot import on_command, get_adapters
 from nonebot.adapters.onebot.v11 import MessageSegment as OneBotV11MessageSegment, Adapter as OneBotV11Adapter, \
     MessageEvent as OneBotV11MessageEvent
+from nonebot.adapters.onebot.v12 import MessageSegment as OneBotV12MessageSegment, Adapter as OneBotV12Adapter, \
+    MessageEvent as OneBotV12MessageEvent
 from nonebot.adapters.qq import MessageSegment as QQGuildMessageSegment, Adapter as QQGuildAdapter, \
     MessageEvent as QQGuildMessageEvent
 from nonebot.adapters.qq.exception import AuditException
@@ -211,7 +213,6 @@ async def perform_game_sign(
 ):
     """
     执行游戏签到函数，并发送给用户签到消息。
-
     :param user: 用户数据
     :param user_ids: 发送通知的所有用户ID
     :param matcher: 事件响应器
@@ -314,6 +315,8 @@ async def perform_game_sign(
                         elif isinstance(event, QQGuildMessageEvent):
                             await matcher.send(msg)
                             await matcher.send(qq_guild_img_msg)
+                        elif isinstance(event, OneBotV12MessageEvent):
+                            await matcher.send(msg)
                     except (ActionFailed, AuditException):
                         pass
                 else:
@@ -325,6 +328,9 @@ async def perform_game_sign(
                             for user_id in user_ids:
                                 await send_private_msg(use=adapter, user_id=user_id, message=msg)
                                 await send_private_msg(use=adapter, user_id=user_id, message=qq_guild_img_msg)
+                        elif isinstance(adapter, OneBotV12Adapter):
+                            for user_id in user_ids:
+                                await send_private_msg(use=adapter, user_id=user_id, message=msg)
             await asyncio.sleep(plugin_config.preference.sleep_time)
 
         if not games_has_record:
