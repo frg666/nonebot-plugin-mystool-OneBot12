@@ -31,6 +31,8 @@ from nonebot_plugin_saa import MessageSegmentFactory, Text, AggregatedMessageFac
 
 from nonebot.adapters.onebot.v11 import MessageEvent as OneBotV11MessageEvent, PrivateMessageEvent, GroupMessageEvent, \
     Adapter as OneBotV11Adapter, Bot as OneBotV11Bot
+from nonebot.adapters.onebot.v12 import MessageEvent as OneBotV12MessageEvent, PrivateMessageEvent as Onebot12PrivateMessageEvent, \
+    GroupMessageEvent as Onebot12GroupMessageEvent
 from nonebot.adapters.qq import DirectMessageCreateEvent, MessageCreateEvent, \
     Adapter as QQGuildAdapter, Bot as QQGuildBot, MessageEvent
 from nonebot.exception import ActionFailed
@@ -50,11 +52,11 @@ __all__ = ["GeneralMessageEvent", "GeneralPrivateMessageEvent", "GeneralGroupMes
 # 启用 nonebot-plugin-send-anything-anywhere 的自动选择 Bot 功能
 enable_auto_select_bot()
 
-GeneralMessageEvent = OneBotV11MessageEvent, MessageCreateEvent, DirectMessageCreateEvent, MessageEvent
+GeneralMessageEvent = OneBotV11MessageEvent, MessageCreateEvent, DirectMessageCreateEvent, MessageEvent, Onebot12GroupMessageEvent, OneBotV12MessageEvent
 """消息事件类型"""
-GeneralPrivateMessageEvent = PrivateMessageEvent, DirectMessageCreateEvent
+GeneralPrivateMessageEvent = PrivateMessageEvent, DirectMessageCreateEvent, Onebot12PrivateMessageEvent
 """私聊消息事件类型"""
-GeneralGroupMessageEvent = GroupMessageEvent, MessageCreateEvent
+GeneralGroupMessageEvent = GroupMessageEvent, MessageCreateEvent, Onebot12GroupMessageEvent
 """群聊消息事件类型"""
 
 
@@ -342,18 +344,21 @@ async def send_private_msg(
         user_id: str,
         message: Union[str, MessageSegmentFactory, AggregatedMessageFactory],
         use: Union[Bot, Adapter] = None,
-        guild_id: int = None
+        guild_id: int = None,
 ) -> Tuple[bool, Optional[ActionFailed]]:
     """
     主动发送私信消息
-
     :param user_id: 目标用户ID
     :param message: 消息内容
     :param use: 使用的Bot或Adapter，为None则使用所有Bot
     :param guild_id: 用户所在频道ID，为None则从用户数据中获取
     :return: (是否发送成功, ActionFailed Exception)
     """
-    user_id_int = int(user_id)
+    if user_id.isdigit():
+        user_id_int = int(user_id)
+    else:
+        user_id_int = user_id
+
     if isinstance(message, str):
         message = Text(message)
 
