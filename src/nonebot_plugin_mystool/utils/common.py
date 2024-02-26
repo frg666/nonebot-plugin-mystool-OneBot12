@@ -27,12 +27,12 @@ from nonebot import Adapter, Bot, require
 
 require("nonebot_plugin_saa")
 from nonebot_plugin_saa import MessageSegmentFactory, Text, AggregatedMessageFactory, TargetQQPrivate, \
-    TargetQQGuildDirect, enable_auto_select_bot
+    TargetQQGuildDirect, TargetOB12Unknow, enable_auto_select_bot
 
 from nonebot.adapters.onebot.v11 import MessageEvent as OneBotV11MessageEvent, PrivateMessageEvent, GroupMessageEvent, \
     Adapter as OneBotV11Adapter, Bot as OneBotV11Bot
 from nonebot.adapters.onebot.v12 import MessageEvent as OneBotV12MessageEvent, PrivateMessageEvent as Onebot12PrivateMessageEvent, \
-    GroupMessageEvent as Onebot12GroupMessageEvent
+    GroupMessageEvent as Onebot12GroupMessageEvent, Adapter as OneBotV12Adapter, Bot as OneBotV12Bot
 from nonebot.adapters.qq import DirectMessageCreateEvent, MessageCreateEvent, \
     Adapter as QQGuildAdapter, Bot as QQGuildBot, MessageEvent
 from nonebot.exception import ActionFailed
@@ -342,12 +342,16 @@ def generate_qr_img(data: str):
 
 async def send_private_msg(
         user_id: str,
+        platform: str,
+        detail_type: str,
         message: Union[str, MessageSegmentFactory, AggregatedMessageFactory],
         use: Union[Bot, Adapter] = None,
         guild_id: int = None,
 ) -> Tuple[bool, Optional[ActionFailed]]:
     """
     主动发送私信消息
+    :param detail_type:消息类型
+    :param platform: 平台
     :param user_id: 目标用户ID
     :param message: 消息内容
     :param use: 使用的Bot或Adapter，为None则使用所有Bot
@@ -367,6 +371,10 @@ async def send_private_msg(
         bots = [use]
     elif isinstance(use, (OneBotV11Adapter, QQGuildAdapter)):
         bots = use.bots.values()
+    elif isinstance(use, (OneBotV12Adapter)):
+        bots = use.bots.values()
+    elif isinstance(use, (OneBotV12Bot)):
+        bots = [use]
     else:
         bots = nonebot.get_bots().values()
 
@@ -374,6 +382,9 @@ async def send_private_msg(
     if isinstance(use, (OneBotV11Bot, OneBotV11Adapter)):
         target = TargetQQPrivate(user_id=user_id_int)
         logger.info(f"{plugin_config.preference.log_head}向用户 {user_id} 发送 QQ 聊天私信 user_id: {user_id_int}")
+    elif isinstance(use, (OneBotV12Bot, OneBotV12Adapter)):
+        target = TargetOB12Unknow(platform=platform, detail_type=detail_type, user_id=user_id)
+        logger.info(f"{plugin_config.preference.log_head}向用户 {user_id} 发送 微信 聊天私信 user_id: {user_id_int}")
     else:
         if guild_id is None:
             if user := PluginDataManager.plugin_data.users.get(user_id):
