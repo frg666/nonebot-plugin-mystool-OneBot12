@@ -342,16 +342,12 @@ def generate_qr_img(data: str):
 
 async def send_private_msg(
         user_id: str,
-        platform: str,
-        detail_type: str,
         message: Union[str, MessageSegmentFactory, AggregatedMessageFactory],
         use: Union[Bot, Adapter] = None,
         guild_id: int = None,
 ) -> Tuple[bool, Optional[ActionFailed]]:
     """
     主动发送私信消息
-    :param detail_type:消息类型
-    :param platform: 平台
     :param user_id: 目标用户ID
     :param message: 消息内容
     :param use: 使用的Bot或Adapter，为None则使用所有Bot
@@ -383,7 +379,7 @@ async def send_private_msg(
         target = TargetQQPrivate(user_id=user_id_int)
         logger.info(f"{plugin_config.preference.log_head}向用户 {user_id} 发送 QQ 聊天私信 user_id: {user_id_int}")
     elif isinstance(use, (OneBotV12Bot, OneBotV12Adapter)):
-        target = TargetOB12Unknow(platform=platform, detail_type=detail_type, user_id=user_id)
+        target = TargetOB12Unknow(platform="wechat", detail_type="private", user_id=user_id)
         logger.info(f"{plugin_config.preference.log_head}向用户 {user_id} 发送 微信 聊天私信 user_id: {user_id_int}")
     else:
         if guild_id is None:
