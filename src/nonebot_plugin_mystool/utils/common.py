@@ -31,7 +31,8 @@ from nonebot_plugin_saa import MessageSegmentFactory, Text, AggregatedMessageFac
 
 from nonebot.adapters.onebot.v11 import MessageEvent as OneBotV11MessageEvent, PrivateMessageEvent, GroupMessageEvent, \
     Adapter as OneBotV11Adapter, Bot as OneBotV11Bot
-from nonebot.adapters.onebot.v12 import MessageEvent as OneBotV12MessageEvent, PrivateMessageEvent as Onebot12PrivateMessageEvent, \
+from nonebot.adapters.onebot.v12 import MessageEvent as OneBotV12MessageEvent, \
+    PrivateMessageEvent as Onebot12PrivateMessageEvent, \
     GroupMessageEvent as Onebot12GroupMessageEvent, Adapter as OneBotV12Adapter, Bot as OneBotV12Bot
 from nonebot.adapters.qq import DirectMessageCreateEvent, MessageCreateEvent, \
     Adapter as QQGuildAdapter, Bot as QQGuildBot, MessageEvent
@@ -367,9 +368,9 @@ async def send_private_msg(
         bots = [use]
     elif isinstance(use, (OneBotV11Adapter, QQGuildAdapter)):
         bots = use.bots.values()
-    elif isinstance(use, (OneBotV12Adapter)):
+    elif isinstance(use, OneBotV12Adapter):
         bots = use.bots.values()
-    elif isinstance(use, (OneBotV12Bot)):
+    elif isinstance(use, OneBotV12Bot):
         bots = [use]
     else:
         bots = nonebot.get_bots().values()
